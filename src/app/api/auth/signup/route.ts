@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
-import { connectToDatabase } from '@/lib/mongodb';
 import { User } from '@/models/User';
+require('dotenv').config({ path: '.env.local' });
 
 export async function POST(req: Request) {
   try {
@@ -14,10 +14,34 @@ export async function POST(req: Request) {
       );
     }
 
-    await connectToDatabase();
+    const { MongoClient } = require('mongodb');
+    const uri = process.env.MONGODB_URI;
+    const options = {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      waitQueueTimeoutMS: 30000,
+      useNewUrlParser: true, 
+      useUnifiedTopology: true
+    };
+
+    const client = new MongoClient(uri, options);
+    await client.connect();
+    const db = client.db(process.env.MONGODB_DB);
+
+    try {
+      await client.connect();
+      console.log('Connected to database');
+    } catch (error) {
+      console.error('Database connection error:', error);
+      throw new Error('Database connection failed');
+    }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await db.collection('users').findOne({ email: email });
+
+    // const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists' },
@@ -29,7 +53,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hash(password, 12);
 
     // Create user
-    const user = await User.create({
+    const user = await db.collection('users').insertOne({
       name,
       email,
       password: hashedPassword,

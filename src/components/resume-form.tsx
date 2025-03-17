@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ResumeFormData, resumeSchema } from '@/types/resume';
@@ -18,6 +18,7 @@ interface ResumeFormProps {
 export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps) {
   // Create a stable reference for the form
   const [formKey] = useState(() => Date.now().toString());
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const {
     register,
@@ -53,58 +54,70 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
   const { fields: experienceFields, append: appendExperience, remove: removeExperience } = useFieldArray({
     control,
     name: "experience",
+    keyName: "_id"
   });
 
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
     control,
     name: "education",
+    keyName: "_id",
   });
 
   const { fields: skillFields, append: appendSkill, remove: removeSkill } = useFieldArray({
     control,
     name: "skills",
-    keyName: "fieldId", // Use a custom key name to avoid conflicts
+    keyName: "_id", 
   });
 
   // Custom handler for adding skills to prevent re-renders
-  const handleAddSkill = () => {
-    const currentSkills = getValues("skills") || [];
+  const handleAddSkill = useCallback(() => {
     appendSkill("");
-  };
+  }, [appendSkill]);
 
   // Custom handler for removing skills to prevent re-renders
-  const handleRemoveSkill = (index: number) => {
+  const handleRemoveSkill = useCallback((index: number) => {
     removeSkill(index);
-  };
+  }, [removeSkill]);
 
   // Update form when initialData changes
   useEffect(() => {
     reset(initialData);
   }, [initialData, reset]);
 
-  // Watch form changes
-  const formData = watch();
-
-  // Debounce form changes
+  // Watch form changes with debounce
+  const formValues = watch();
+  
+  // Use a separate effect for the onChange handler with debounce
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (onChange) {
-        onChange(formData);
+    if (!onChange) return;
+    
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set a new timeout
+    timeoutRef.current = setTimeout(() => {
+      onChange(formValues);
+    }, 500);
+    
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [formData, onChange]);
+    };
+  }, [formValues, onChange]);
 
   return (
     <form key={formKey} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Full Name</label>
+        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
         <Controller
           name="fullName"
           control={control}
           render={({ field }) => (
-            <Input {...field} className="mt-1" />
+            <Input id="fullName" {...field} className="mt-1" />
           )}
         />
         {errors.fullName && (
@@ -113,12 +126,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
         <Controller
           name="email"
           control={control}
           render={({ field }) => (
-            <Input type="email" {...field} className="mt-1" />
+            <Input id="email" type="email" {...field} className="mt-1" />
           )}
         />
         {errors.email && (
@@ -127,12 +140,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Phone</label>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
         <Controller
           name="phone"
           control={control}
           render={({ field }) => (
-            <Input {...field} className="mt-1" />
+            <Input id="phone" {...field} className="mt-1" />
           )}
         />
         {errors.phone && (
@@ -141,12 +154,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Location (Optional)</label>
+        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location (Optional)</label>
         <Controller
           name="location"
           control={control}
           render={({ field }) => (
-            <Input {...field} className="mt-1" />
+            <Input id="location" {...field} className="mt-1" />
           )}
         />
         {errors.location && (
@@ -155,7 +168,7 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Photo URL (Optional)</label>
+        <label htmlFor="photoUrl" className="block text-sm font-medium text-gray-700">Photo URL (Optional)</label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
             <Controller
@@ -163,6 +176,7 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
               control={control}
               render={({ field }) => (
                 <Input 
+                  id="photoUrl"
                   {...field} 
                   className="mt-1" 
                   placeholder="https://example.com/your-photo.jpg" 
@@ -177,10 +191,10 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
             </p>
           </div>
           <div className="flex items-center justify-center">
-            {watch('photoUrl') ? (
+            {formValues.photoUrl ? (
               <div className="relative w-24 h-24 rounded-full overflow-hidden border border-gray-200">
                 <img 
-                  src={watch('photoUrl')} 
+                  src={formValues.photoUrl} 
                   alt="Profile" 
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -199,12 +213,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Professional Summary</label>
+        <label htmlFor="summary" className="block text-sm font-medium text-gray-700">Professional Summary</label>
         <Controller
           name="summary"
           control={control}
           render={({ field }) => (
-            <Textarea {...field} className="mt-1" rows={4} />
+            <Textarea id="summary" {...field} className="mt-1" rows={4} />
           )}
         />
         {errors.summary && (
@@ -235,7 +249,7 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
           {experienceFields.map((field, index) => (
             <div key={field.id} className="border p-4 rounded-lg space-y-4 relative">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Experience {index + 1}</h3>
+                <h3 className="text-lg font-medium">Experience {field.id} {index + 1}</h3>
                 {index > 0 && (
                   <Button
                     type="button"
@@ -249,12 +263,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Company</label>
+                <label htmlFor={`company-${index}`} className="block text-sm font-medium text-gray-700">Company</label>
                 <Controller
                   name={`experience.${index}.company`}
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} className="mt-1" />
+                    <Input id={`company-${index}`} {...field} className="mt-1" />
                   )}
                 />
                 {errors.experience?.[index]?.company && (
@@ -262,12 +276,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Position</label>
+                <label htmlFor={`position-${index}`} className="block text-sm font-medium text-gray-700">Position</label>
                 <Controller
                   name={`experience.${index}.position`}
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} className="mt-1" />
+                    <Input id={`position-${index}`} {...field} className="mt-1" />
                   )}
                 />
                 {errors.experience?.[index]?.position && (
@@ -276,12 +290,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                  <label htmlFor={`exp-start-date-${index}`} className="block text-sm font-medium text-gray-700">Start Date</label>
                   <Controller
                     name={`experience.${index}.startDate`}
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} className="mt-1" placeholder="e.g., Jan 2020" />
+                      <Input id={`exp-start-date-${index}`} {...field} className="mt-1" placeholder="e.g., Jan 2020" />
                     )}
                   />
                   {errors.experience?.[index]?.startDate && (
@@ -289,12 +303,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">End Date</label>
+                  <label htmlFor={`exp-end-date-${index}`} className="block text-sm font-medium text-gray-700">End Date</label>
                   <Controller
                     name={`experience.${index}.endDate`}
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} className="mt-1" placeholder="e.g., Present" />
+                      <Input id={`exp-end-date-${index}`} {...field} className="mt-1" placeholder="e.g., Present" />
                     )}
                   />
                   {errors.experience?.[index]?.endDate && (
@@ -303,12 +317,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <label htmlFor={`exp-description-${index}`} className="block text-sm font-medium text-gray-700">Description</label>
                 <Controller
                   name={`experience.${index}.description`}
                   control={control}
                   render={({ field }) => (
-                    <Textarea {...field} className="mt-1" rows={3} />
+                    <Textarea id={`exp-description-${index}`} {...field} className="mt-1" rows={3} />
                   )}
                 />
                 {errors.experience?.[index]?.description && (
@@ -357,12 +371,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Institution</label>
+                <label htmlFor={`institution-${index}`} className="block text-sm font-medium text-gray-700">Institution</label>
                 <Controller
                   name={`education.${index}.institution`}
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} className="mt-1" />
+                    <Input id={`institution-${index}`} {...field} className="mt-1" />
                   )}
                 />
                 {errors.education?.[index]?.institution && (
@@ -370,12 +384,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Degree</label>
+                <label htmlFor={`degree-${index}`} className="block text-sm font-medium text-gray-700">Degree</label>
                 <Controller
                   name={`education.${index}.degree`}
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} className="mt-1" />
+                    <Input id={`degree-${index}`} {...field} className="mt-1" />
                   )}
                 />
                 {errors.education?.[index]?.degree && (
@@ -384,12 +398,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                  <label htmlFor={`edu-start-date-${index}`} className="block text-sm font-medium text-gray-700">Start Date</label>
                   <Controller
                     name={`education.${index}.startDate`}
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} className="mt-1" placeholder="e.g., Sep 2016" />
+                      <Input id={`edu-start-date-${index}`} {...field} className="mt-1" placeholder="e.g., Sep 2016" />
                     )}
                   />
                   {errors.education?.[index]?.startDate && (
@@ -397,12 +411,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">End Date</label>
+                  <label htmlFor={`edu-end-date-${index}`} className="block text-sm font-medium text-gray-700">End Date</label>
                   <Controller
                     name={`education.${index}.endDate`}
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} className="mt-1" placeholder="e.g., May 2020" />
+                      <Input id={`edu-end-date-${index}`} {...field} className="mt-1" placeholder="e.g., May 2020" />
                     )}
                   />
                   {errors.education?.[index]?.endDate && (
@@ -411,12 +425,12 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <label htmlFor={`edu-description-${index}`} className="block text-sm font-medium text-gray-700">Description</label>
                 <Controller
                   name={`education.${index}.description`}
                   control={control}
                   render={({ field }) => (
-                    <Textarea {...field} className="mt-1" rows={2} />
+                    <Textarea id={`edu-description-${index}`} {...field} className="mt-1" rows={2} />
                   )}
                 />
                 {errors.education?.[index]?.description && (
@@ -443,17 +457,21 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
         </div>
         <div className="space-y-4">
           {skillFields.map((field, index) => (
-            <div key={`skill-${field.fieldId}`} className="flex items-center gap-2">
+            <div key={`skill-${field._id}`} className="flex items-center gap-2">
               <Controller
-                key={`skill-controller-${field.fieldId}`}
+                key={`skill-controller-${field._id}`}
                 name={`skills.${index}`}
                 control={control}
                 render={({ field: inputField }) => (
-                  <Input 
-                    {...inputField} 
-                    className="flex-grow"
-                    placeholder="e.g., JavaScript, Project Management, etc."
-                  />
+                  <>
+                    <label htmlFor={`skill-${index}`} className="sr-only">Skill {index + 1}</label>
+                    <Input 
+                      id={`skill-${index}`}
+                      {...inputField} 
+                      className="flex-grow"
+                      placeholder="e.g., JavaScript, Project Management, etc."
+                    />
+                  </>
                 )}
               />
               <Button
@@ -463,6 +481,7 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
                 onClick={() => handleRemoveSkill(index)}
                 className="text-red-500 hover:text-red-700"
                 disabled={skillFields.length <= 1}
+                aria-label={`Remove skill ${index + 1}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -476,4 +495,4 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
       </Button>
     </form>
   );
-} 
+}
