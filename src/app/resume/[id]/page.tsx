@@ -2,7 +2,7 @@ import { use } from 'react';
 import ResumePageClient from './resume-page-client';
 import { RegeneratePreviewButton } from '@/components/regenerate-preview-button';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 interface ResumePageProps {
   params: Promise<{ id: string }>;

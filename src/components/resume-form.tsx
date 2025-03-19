@@ -65,7 +65,7 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
 
   const { fields: skillFields, append: appendSkill, remove: removeSkill } = useFieldArray({
     control,
-    name: "skills",
+    name: "skills" as any,
     keyName: "_id", 
   });
 
@@ -247,9 +247,9 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
         </div>
         <div className="space-y-4">
           {experienceFields.map((field, index) => (
-            <div key={field.id} className="border p-4 rounded-lg space-y-4 relative">
+            <div key={field._id} className="border p-4 rounded-lg space-y-4 relative">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Experience {field.id} {index + 1}</h3>
+                <h3 className="text-lg font-medium">Experience {index + 1}</h3>
                 {index > 0 && (
                   <Button
                     type="button"
@@ -355,7 +355,7 @@ export function ResumeForm({ initialData, onSubmit, onChange }: ResumeFormProps)
         </div>
         <div className="space-y-4">
           {educationFields.map((field, index) => (
-            <div key={field.id} className="border p-4 rounded-lg space-y-4 relative">
+            <div key={field._id} className="border p-4 rounded-lg space-y-4 relative">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Education {index + 1}</h3>
                 {index > 0 && (

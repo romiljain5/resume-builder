@@ -76,9 +76,9 @@ export default function NewResume() {
   });
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
+    // register,
+    // handleSubmit,
+    // formState: { errors },
     setValue,
   } = useForm<ResumeFormData>({
     resolver: zodResolver(resumeSchema),

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Settings() {
   const { data: session } = useSession();

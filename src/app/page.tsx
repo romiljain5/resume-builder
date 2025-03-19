@@ -5,11 +5,9 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { getTemplateInfo } from '@/config/templates';
 import { ResumeFormData } from '@/types/resume';
 import { toast } from 'sonner';
 import { AIResumeGenerator } from '@/components/ai-resume-generator';
-import { DynamicResumePreview } from '@/components/dynamic-resume-preview';
 import { ResumeCard } from '@/components/resume-card';
 
 // Interface for the nested data structure

@@ -20,12 +20,14 @@ export const templatePreviews = {
     description: 'Standard resume template',
     preview: '/templates/modern-preview.png'
   }
-};
+} as const;
+
+type TemplateName = keyof typeof templatePreviews;
 
 // Helper function to safely get template info
 export function getTemplateInfo(templateName: string | undefined) {
-  if (!templateName || !templatePreviews[templateName]) {
+  if (!templateName || !(templateName in templatePreviews)) {
     return templatePreviews.default;
   }
-  return templatePreviews[templateName];
+  return templatePreviews[templateName as TemplateName];
 } 

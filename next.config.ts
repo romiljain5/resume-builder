@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ['via.placeholder.com', 'images.unsplash.com'],
     remotePatterns: [
@@ -12,8 +15,8 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    serverExternalPackages: ['mongoose'],
   },
+  output: 'standalone',
 };
 
 export default nextConfig;

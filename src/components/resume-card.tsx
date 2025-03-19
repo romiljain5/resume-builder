@@ -15,8 +15,15 @@ interface NestedResumeData {
   updatedAt?: string;
 }
 
+// Extended ResumeFormData with database fields
+interface ExtendedResumeFormData extends ResumeFormData {
+  _id?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
 interface ResumeCardProps {
-  resume: ResumeFormData | NestedResumeData;
+  resume: ExtendedResumeFormData | NestedResumeData;
 }
 
 export function ResumeCard({ resume }: ResumeCardProps) {
@@ -24,7 +31,7 @@ export function ResumeCard({ resume }: ResumeCardProps) {
   const [previewError, setPreviewError] = useState(false);
   
   // Helper function to get template name from resume data
-  const getResumeTemplate = (resume: ResumeFormData | NestedResumeData): string => {
+  const getResumeTemplate = (resume: ExtendedResumeFormData | NestedResumeData): string => {
     if ('content' in resume && resume.content) {
       // It's a nested structure
       return resume.template || resume.content.template || 'modern';
@@ -35,7 +42,7 @@ export function ResumeCard({ resume }: ResumeCardProps) {
   };
 
   // Helper function to get resume name
-  const getResumeName = (resume: ResumeFormData | NestedResumeData): string => {
+  const getResumeName = (resume: ExtendedResumeFormData | NestedResumeData): string => {
     if ('content' in resume && resume.content) {
       // It's a nested structure
       return resume.content.fullName || 'Untitled Resume';
@@ -45,8 +52,26 @@ export function ResumeCard({ resume }: ResumeCardProps) {
     }
   };
   
+  // Helper function to get resume ID
+  const getResumeId = (resume: ExtendedResumeFormData | NestedResumeData): string => {
+    if ('_id' in resume && resume._id) {
+      return resume._id;
+    }
+    return 'new'; // Fallback for new resumes without an ID
+  };
+  
+  // Helper function to get creation date
+  const getCreatedAt = (resume: ExtendedResumeFormData | NestedResumeData): string | Date => {
+    if ('createdAt' in resume && resume.createdAt) {
+      return resume.createdAt;
+    }
+    return new Date(); // Fallback for resumes without a creation date
+  };
+  
   const templateName = getResumeTemplate(resume);
   const templateInfo = getTemplateInfo(templateName);
+  const resumeId = getResumeId(resume);
+  const createdAt = getCreatedAt(resume);
   
   // Handle preview errors
   const handlePreviewError = () => {
@@ -73,7 +98,7 @@ export function ResumeCard({ resume }: ResumeCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link
-        href={`/resume/${resume._id}`}
+        href={`/resume/${resumeId}`}
         className="block"
       >
         <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform group-hover:scale-105">
@@ -111,7 +136,7 @@ export function ResumeCard({ resume }: ResumeCardProps) {
               {templateInfo.name} Template
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              Created {new Date(resume.createdAt).toLocaleDateString()}
+              Created {new Date(createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>

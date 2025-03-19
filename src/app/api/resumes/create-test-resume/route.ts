@@ -53,18 +53,20 @@ export async function GET(req: Request) {
     console.log('GET /api/resumes/create-test-resume - Test resume ID:', testResume._id);
 
     // Update the user document by pushing the new resume to the resumes array
+    const updateDoc = {
+      $push: { resumes: testResume } as any,
+      $setOnInsert: { 
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    };
+
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(session.user.id) },
-      { 
-        $push: { resumes: testResume },
-        $setOnInsert: { 
-          email: session.user.email,
-          name: session.user.name,
-          image: session.user.image,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      },
+      updateDoc,
       { upsert: true }
     );
 

@@ -2,7 +2,6 @@ import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { connectToDatabase } from './mongodb';
-import { ObjectId } from 'mongodb';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -35,7 +34,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub;
+        session.user.id = token.sub || '';
         session.user.name = token.name;
         session.user.email = token.email;
         session.user.image = token.picture;
