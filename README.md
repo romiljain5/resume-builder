@@ -2,7 +2,7 @@
 
 A modern resume builder application that uses AI to help you create professional resumes. Built with Next.js, TypeScript, and OpenAI.
 
-## Features
+## Features 
 
 - Google Authentication
 - AI-powered resume content generation
