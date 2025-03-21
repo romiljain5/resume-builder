@@ -27,6 +27,18 @@ const templates: Template[] = [
     description: 'Simple and elegant design focusing on content',
     preview: 'https://placehold.co/600x800/1a1a1a/ffffff?text=Minimal+Template',
   },
+  {
+    id: 'green',
+    name: 'Green',
+    description: 'Simple and elegant design focusing on content',
+    preview: 'https://placehold.co/600x800/1a1a1a/ffffff?text=Green+Template',
+  },
+  {
+    id: 'minimalTwo',
+    name: 'Minimal Two',
+    description: 'A minimalistic template with a clean, modern look',
+    preview: 'https://placehold.co/600x800/1a1a1a/ffffff?text=Minimal+Two+Template',
+  },
 ];
 
 interface TemplateSelectorProps {

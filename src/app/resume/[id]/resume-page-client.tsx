@@ -11,6 +11,8 @@ import { ClassicTemplate } from '@/components/resume-templates/classic';
 import { MinimalTemplate } from '@/components/resume-templates/minimal';
 import { ResumeFormData } from '@/types/resume';
 import { generatePDF } from '@/lib/pdf-utils';
+import { GreenTemplate } from '@/components/resume-templates/green';
+import { MinimalTwoTemplate } from '@/components/resume-templates/minimalTwo';
 
 interface ResumePageClientProps {
   id: string;
@@ -307,6 +309,10 @@ const ResumePageClient = ({ id }: ResumePageClientProps) => {
         return <ClassicTemplate data={resume} />;
       case 'minimal':
         return <MinimalTemplate data={resume} />;
+      case 'green':
+        return <GreenTemplate data={resume} />;
+      case 'minimalTwo':
+        return <MinimalTwoTemplate data={resume} />;
       default:
         return <ModernTemplate data={resume} />;
     }

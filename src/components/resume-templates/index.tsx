@@ -2,6 +2,8 @@ import { ModernTemplate } from './modern';
 import { ClassicTemplate } from './classic';
 import { MinimalTemplate } from './minimal';
 import { ResumeFormData } from '@/types/resume';
+import { GreenTemplate } from './green';
+import { MinimalTwoTemplate } from './minimalTwo';
 
 export type TemplateType = 'modern' | 'classic' | 'minimal';
 
@@ -24,6 +26,8 @@ const templates = {
   modern: ModernTemplate,
   classic: ClassicTemplate,
   minimal: MinimalTemplate,
+  green: GreenTemplate,
+  minimalTwo: MinimalTwoTemplate,
 };
 
 export function ResumeTemplate({ type, data }: TemplateProps) {
