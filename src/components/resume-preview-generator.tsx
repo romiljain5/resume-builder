@@ -4,6 +4,8 @@ import { ResumeFormData } from '@/types/resume';
 import { ModernTemplate } from './resume-templates/modern';
 import { ClassicTemplate } from './resume-templates/classic';
 import { MinimalTemplate } from './resume-templates/minimal';
+import { GreenTemplate } from './resume-templates/green';
+import { MinimalTwoTemplate } from './resume-templates/minimalTwo';
 
 // Interface for the nested data structure
 interface NestedResumeData {
@@ -43,6 +45,10 @@ export function ResumePreviewGenerator({
         return <ClassicTemplate data={resumeData} />;
       case 'minimal':
         return <MinimalTemplate data={resumeData} />;
+      case 'green':
+        return <GreenTemplate data={resumeData} />;
+      case 'minimalTwo':
+        return <MinimalTwoTemplate data={resumeData} />;
       default:
         return <ModernTemplate data={resumeData} />;
     }
